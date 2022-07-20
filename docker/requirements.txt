@@ -1,10 +1,13 @@
+albumentations
 numpy
 pandas
 matplotlib
+munch
 opencv-python
 rasterio
 tiffile
 scikit-image
+scipy
 torch
+torchvision
 tqdm
-albumentations

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 DEBUG = False
 
 import numpy as np
@@ -303,12 +304,14 @@ class DecodeBlock(nn.Module):
     
 #U-Net ResNet34 + CBAM + hypercolumns + deepsupervision
 class UNET_RESNET34(nn.Module):
-    def __init__(self, resolution, deepsupervision, clfhead, load_weights=True):
+    def __init__(self, resolution, deepsupervision, clfhead, config, load_weights=True):
         super().__init__()
         h,w = resolution
         self.deepsupervision = deepsupervision
         self.clfhead = clfhead
-        
+
+        self.config = config
+
         #encoder
         model_name = 'resnet34' #26M
         resnet34 = pretrainedmodels.__dict__['resnet34'](num_classes=1000,pretrained=None)
@@ -372,8 +375,8 @@ class UNET_RESNET34(nn.Module):
         
         #clf head
         logits_clf = self.clf(self.avgpool(x4).squeeze(-1).squeeze(-1)) #->(*,1)
-        if config['clf_threshold'] is not None:
-            if (torch.sigmoid(logits_clf)>config['clf_threshold']).sum().item()==0:
+        if self.config['clf_threshold'] is not None:
+            if (torch.sigmoid(logits_clf)>self.config['clf_threshold']).sum().item()==0:
                 bs,_,h,w = inputs.shape
                 logits = torch.zeros((bs,1,h,w))
                 if self.clfhead:
@@ -433,7 +436,7 @@ class UNET_RESNET34(nn.Module):
         
 #U-Net SeResNext50 + CBAM + hypercolumns + deepsupervision
 class UNET_SERESNEXT50(nn.Module):
-    def __init__(self, resolution, deepsupervision, clfhead, load_weights=True):
+    def __init__(self, resolution, deepsupervision, clfhead, config, load_weights=True):
         super().__init__()
         h,w = resolution
         self.deepsupervision = deepsupervision
@@ -507,8 +510,8 @@ class UNET_SERESNEXT50(nn.Module):
         
         #clf head
         logits_clf = self.clf(self.avgpool(x4).squeeze(-1).squeeze(-1)) #->(*,1)
-        if config['clf_threshold'] is not None:
-            if (torch.sigmoid(logits_clf)>config['clf_threshold']).sum().item()==0:
+        if self.config['clf_threshold'] is not None:
+            if (torch.sigmoid(logits_clf)>self.config['clf_threshold']).sum().item()==0:
                 bs,_,h,w = inputs.shape
                 logits = torch.zeros((bs,1,h,w))
                 if self.clfhead:
@@ -568,7 +571,7 @@ class UNET_SERESNEXT50(nn.Module):
 
 #U-Net SeResNext101 + CBAM + hypercolumns + deepsupervision
 class UNET_SERESNEXT101(nn.Module):
-    def __init__(self, resolution, deepsupervision, clfhead, load_weights=True):
+    def __init__(self, resolution, deepsupervision, clfhead, config, load_weights=True):
         super().__init__()
         h,w = resolution
         self.deepsupervision = deepsupervision
@@ -631,6 +634,8 @@ class UNET_SERESNEXT101(nn.Module):
             nn.BatchNorm1d(512).apply(init_weight),
             nn.Linear(512,1).apply(init_weight)
         )
+
+        self.config = config
         
     def forward(self, inputs):
         #encoder
@@ -642,8 +647,8 @@ class UNET_SERESNEXT101(nn.Module):
         
         #clf head
         logits_clf = self.clf(self.avgpool(x4).squeeze(-1).squeeze(-1)) #->(*,1)
-        if config['clf_threshold'] is not None:
-            if (torch.sigmoid(logits_clf)>config['clf_threshold']).sum().item()==0:
+        if self.config['clf_threshold'] is not None:
+            if (torch.sigmoid(logits_clf)>self.config['clf_threshold']).sum().item()==0:
                 bs,_,h,w = inputs.shape
                 logits = torch.zeros((bs,1,h,w))
                 if self.clfhead:
@@ -701,14 +706,14 @@ class UNET_SERESNEXT101(nn.Module):
             else:
                 return logits    
   
-def build_model(resolution, deepsupervision, clfhead, load_weights):
+def build_model(resolution, deepsupervision, clfhead, load_weights, config):
     model_name = config['model_name']
     if model_name=='resnet34':
-        model = UNET_RESNET34(resolution, deepsupervision, clfhead, load_weights)
+        model = UNET_RESNET34(resolution, deepsupervision, clfhead, config, load_weights)
     elif model_name=='seresnext50':
-        model = UNET_SERESNEXT50(resolution, deepsupervision, clfhead, load_weights)
+        model = UNET_SERESNEXT50(resolution, deepsupervision, clfhead, config, load_weights)
     elif model_name=='seresnext101':
-        model = UNET_SERESNEXT101(resolution, deepsupervision, clfhead, load_weights)
+        model = UNET_SERESNEXT101(resolution, deepsupervision, clfhead, config, load_weights)
     return model
 
 def get_model_lists(config):
@@ -768,7 +773,7 @@ def load_image(img_path, df_info):
     return img
 
 class HuBMAPDataset(Dataset):
-    def __init__(self, path):
+    def __init__(self, path, config):
         super().__init__()
         self.data = rasterio.open(path)
         if self.data.count != 3:
@@ -954,4 +959,4 @@ if __name__ == '__main__':
 
         manhole.install(activate_on="USR1")
 
-    main(args.nexus_token, args.data_directory)
+    main(args.data_directory)
