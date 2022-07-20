@@ -1,0 +1,1 @@
+hubmap/pas-ftu-segmentation	docker/Dockerfile	base_directory_build
