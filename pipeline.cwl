@@ -26,7 +26,7 @@ outputs:
 
 steps:
 
-  - id: annotate-concatenate
+  - id: segmentation
     in:
       - id: data_directory
         source: data_directory

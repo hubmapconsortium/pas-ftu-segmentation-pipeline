@@ -21,13 +21,13 @@ inputs:
       position: 1
 
 outputs:
-  png_masks:
+  png_files:
     type: File[]
     outputBinding:
       glob: "*.png"
     doc: segmentation masks in png form
 
-  json_masks:
+  json_files:
     type: File[]
     outputBinding:
       glob: "*.json"

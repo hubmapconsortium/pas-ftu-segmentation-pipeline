@@ -7,21 +7,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 #   command-line interface, so let's use `apt-get` instead
 RUN apt-get update \
  && apt-get -y install \
-    autoconf \
-    automake \
-    bison \
-    flex \
     git \
-    libfreetype6-dev \
-    libigraph0-dev \
-    libxml2-dev \
-    libtool \
-    m4 \
-    pkg-config \
     python3 \
     python3-dev \
     python3-pip \
-    zlib1g-dev \
  && rm -rf /var/cache/apt/*
 
 ## Python packages

@@ -50,42 +50,8 @@ import pretrainedmodels
 
 BASE_PATH = r'/N/slate/soodn/'
 
-config = {
-    'split_seed_list':[0],
-    'FOLD_LIST':[0,1,2,3], 
-    'model_path':BASE_PATH+'models/hubmap-new-03-03',
-    'model_name':'seresnext101',
-    
-    'num_classes':1,
-    'resolution':1024, #(1024,1024),(512,512),
-    'input_resolution':320, #(320,320), #(256,256), #(512,512), #(384,384)
-    'deepsupervision':False, # always false for inference
-    'clfhead':False,
-    'clf_threshold':0.5,
-    'small_mask_threshold':0, #256*256*0.03, #512*512*0.03,
-    'mask_threshold':0.5,
-    # 'mask_threshold':0.0003,
-    'pad_size':256, #(64,64), #(256,256), #(128,128)
-    
-    'tta':3,
-    'test_batch_size':12,
-    
-    'FP16':False,
-    'num_workers':4,
-    'device':torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-}
-
-device = config['device']
-start = time.time()
-
-# dataset = "colon" 
-# dataset = "kidney"
-
-print('Python        : ' + sys.version.split('\n')[0])
-print('Numpy         : ' + np.__version__)
-print('Pandas        : ' + pd.__version__)
-print('Rasterio      : ' + rasterio.__version__)
-print('OpenCV        : ' + cv2.__version__)
+MEAN = np.array([0.485, 0.456, 0.406])
+STD  = np.array([0.229, 0.224, 0.225])
 
 def find_files(directory: Path, pattern: str) -> Iterable[Path]:
     for dirpath_str, dirnames, filenames in os.walk(directory):
@@ -94,6 +60,34 @@ def find_files(directory: Path, pattern: str) -> Iterable[Path]:
             filepath = dirpath / filename
             if filepath.match(pattern):
                 yield filepath
+
+def get_config():
+    config = {
+        'split_seed_list': [0],
+        'FOLD_LIST': [0, 1, 2, 3],
+        'model_path': BASE_PATH + 'models/hubmap-new-03-03',
+        'model_name': 'seresnext101',
+
+        'num_classes': 1,
+        'resolution': 1024,  # (1024,1024),(512,512),
+        'input_resolution': 320,  # (320,320), #(256,256), #(512,512), #(384,384)
+        'deepsupervision': False,  # always false for inference
+        'clfhead': False,
+        'clf_threshold': 0.5,
+        'small_mask_threshold': 0,  # 256*256*0.03, #512*512*0.03,
+        'mask_threshold': 0.5,
+        # 'mask_threshold':0.0003,
+        'pad_size': 256,  # (64,64), #(256,256), #(128,128)
+
+        'tta': 3,
+        'test_batch_size': 12,
+
+        'FP16': False,
+        'num_workers': 4,
+        'device': torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    }
+    return config
+
 
 def fix_seed(seed):
     random.seed(seed)
@@ -717,34 +711,31 @@ def build_model(resolution, deepsupervision, clfhead, load_weights):
         model = UNET_SERESNEXT101(resolution, deepsupervision, clfhead, load_weights)
     return model
 
-LOAD_LOCAL_WEIGHT_PATH_LIST = {}
-for seed in config['split_seed_list']:
-    LOAD_LOCAL_WEIGHT_PATH_LIST[seed] = []
-    for fold in config['FOLD_LIST']:
-        LOAD_LOCAL_WEIGHT_PATH_LIST[seed].append(opj(config['model_path'],f'model_seed{seed}_fold{fold}_bestscore.pth'))
-        #LOAD_LOCAL_WEIGHT_PATH_LIST[seed].append(opj(config['model_path'],f'model_seed{seed}_fold{fold}_swa.pth'))
+def get_model_lists(config):
+    LOAD_LOCAL_WEIGHT_PATH_LIST = {}
+    for seed in config['split_seed_list']:
+        LOAD_LOCAL_WEIGHT_PATH_LIST[seed] = []
+        for fold in config['FOLD_LIST']:
+            LOAD_LOCAL_WEIGHT_PATH_LIST[seed].append(
+                opj(config['model_path'], f'model_seed{seed}_fold{fold}_bestscore.pth'))
+            # LOAD_LOCAL_WEIGHT_PATH_LIST[seed].append(opj(config['model_path'],f'model_seed{seed}_fold{fold}_swa.pth'))
 
-model_list = {}
-for seed in config['split_seed_list']:
-    model_list[seed] = []
-    for path in LOAD_LOCAL_WEIGHT_PATH_LIST[seed]:
-        print("Loading weights from %s" % path)
-        
-        model = build_model(resolution=(None,None), #config['resolution'], 
-                            deepsupervision=config['deepsupervision'], 
-                            clfhead=config['clfhead'],
-                            load_weights=False).to(device)
-        
-        model.load_state_dict(torch.load(path))
-        model.eval()
-        model_list[seed].append(model) 
+    model_list = {}
+    for seed in config['split_seed_list']:
+        model_list[seed] = []
+        for path in LOAD_LOCAL_WEIGHT_PATH_LIST[seed]:
+            print("Loading weights from %s" % path)
 
+            model = build_model(resolution=(None, None),  # config['resolution'],
+                                deepsupervision=config['deepsupervision'],
+                                clfhead=config['clfhead'],
+                                load_weights=False).to(config["device"])
 
-#from get_config import *
-#config = get_config()
+            model.load_state_dict(torch.load(path))
+            model.eval()
+            model_list[seed].append(model)
 
-MEAN = np.array([0.485, 0.456, 0.406])
-STD  = np.array([0.229, 0.224, 0.225])
+    return model_list
 
 def get_transforms_test():
     transforms = Compose([
@@ -843,7 +834,7 @@ def my_collate_fn(batch):
 
 
 seed = 0
-def get_pred_mask(path, model_list):
+def get_pred_mask(path, model_list, config):
     ds = HuBMAPDataset(path)
     #rasterio cannot be used with multiple workers
     dl = DataLoader(ds,batch_size=config['test_batch_size'],
@@ -851,6 +842,8 @@ def get_pred_mask(path, model_list):
                     collate_fn=my_collate_fn) 
     
     pred_mask = np.zeros((len(ds),ds.pred_sz,ds.pred_sz), dtype=np.uint8)
+
+    device = config["device"]
     
     i_data = 0
     for data in tqdm(dl):
@@ -894,7 +887,7 @@ def get_pred_mask(path, model_list):
     print('non_zero_ratio = {:.4f}'.format(non_zero_ratio))
     return pred_mask,ds.h,ds.w
 
-def get_rle(y_preds, h,w):
+def get_rle(y_preds, h,w, config):
     rle = mask2rle(y_preds, shape=(h,w), small_mask_threshold=config['small_mask_threshold'])
     return rle
 
@@ -935,10 +928,16 @@ def main(data_directory: Path):
     image_paths = list(find_files(data_directory, file_template))
     print(f"Found files: {image_paths}")
 
+    config = get_config()
+    print(f"Config generated")
+
+    model_list = get_model_lists(config)
+
     for image_path in image_paths:
         path_stem = image_path.stem
-        pred_mask, h, w = get_pred_mask(image_path)
-        rle = get_rle(pred_mask, h, w)
+        pred_mask, h, w = get_pred_mask(image_path, model_list, config)
+        rle = get_rle(pred_mask, h, w, config)
+        print(rle)
         plt.imsave(f'{path_stem}_mask.png', pred_mask)
         json_mask = mask2json(pred_mask)
         with open(f'{path_stem}_mask.json') as f:
@@ -946,7 +945,6 @@ def main(data_directory: Path):
 
 if __name__ == '__main__':
     p = ArgumentParser()
-    p.add_argument('nexus_token', type=str)
     p.add_argument('data_directory', type=Path, nargs='+')
     p.add_argument("--enable-manhole", action="store_true")
     args = p.parse_args()
