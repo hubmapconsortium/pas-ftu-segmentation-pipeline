@@ -3,10 +3,16 @@ DEBUG = False
 
 import numpy as np
 import pandas as pd
-pd.get_option("display.max_columns")
-pd.set_option('display.max_columns', 300)
-pd.get_option("display.max_rows")
-pd.set_option('display.max_rows', 300)
+
+from albumentations import (Compose, HorizontalFlip, VerticalFlip, Rotate, RandomRotate90,
+                            ShiftScaleRotate, ElasticTransform,
+                            GridDistortion, RandomSizedCrop, RandomCrop, CenterCrop,
+                            RandomBrightnessContrast, HueSaturationValue, IAASharpen,
+                            RandomGamma, RandomBrightness, RandomBrightnessContrast,
+                            GaussianBlur,CLAHE,
+                            Cutout, CoarseDropout, GaussNoise, ChannelShuffle, ToGray, OpticalDistortion,
+                            Normalize, OneOf, NoOp)
+from albumentations.pytorch import ToTensorV2
 
 import matplotlib.pyplot as plt
 
@@ -35,24 +41,12 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
-from albumentations import (Compose, HorizontalFlip, VerticalFlip, Rotate, RandomRotate90,
-                            ShiftScaleRotate, ElasticTransform,
-                            GridDistortion, RandomSizedCrop, RandomCrop, CenterCrop,
-                            RandomBrightnessContrast, HueSaturationValue, IAASharpen,
-                            RandomGamma, RandomBrightness, RandomBrightnessContrast,
-                            GaussianBlur,CLAHE,
-                            Cutout, CoarseDropout, GaussNoise, ChannelShuffle, ToGray, OpticalDistortion,
-                            Normalize, OneOf, NoOp)
-from albumentations.pytorch import ToTensorV2
-
 package_dir = "/opt/pretrainedmodels/pretrained-models.pytorch-master/"
 sys.path.insert(0, package_dir)
 import pretrainedmodels
 
-BASE_PATH = r'/N/slate/soodn/'
-
 MEAN = np.array([0.485, 0.456, 0.406])
-STD  = np.array([0.229, 0.224, 0.225])
+STD = np.array([0.229, 0.224, 0.225])
 
 def find_files(directory: Path, pattern: str) -> Iterable[Path]:
     for dirpath_str, dirnames, filenames in os.walk(directory):
@@ -66,7 +60,7 @@ def get_config():
     config = {
         'split_seed_list': [0],
         'FOLD_LIST': [0, 1, 2, 3],
-        'model_path': BASE_PATH + 'models/hubmap-new-03-03',
+        'model_path': '/opt/models/',
         'model_name': 'seresnext101',
 
         'num_classes': 1,
@@ -734,7 +728,7 @@ def get_model_lists(config):
             model = build_model(resolution=(None, None),  # config['resolution'],
                                 deepsupervision=config['deepsupervision'],
                                 clfhead=config['clfhead'],
-                                load_weights=False).to(config["device"])
+                                load_weights=False, config=config).to(config["device"])
 
             model.load_state_dict(torch.load(path))
             model.eval()
@@ -840,7 +834,7 @@ def my_collate_fn(batch):
 
 seed = 0
 def get_pred_mask(path, model_list, config):
-    ds = HuBMAPDataset(path)
+    ds = HuBMAPDataset(path, config)
     #rasterio cannot be used with multiple workers
     dl = DataLoader(ds,batch_size=config['test_batch_size'],
                     num_workers=0,shuffle=False,pin_memory=True,
@@ -950,7 +944,7 @@ def main(data_directory: Path):
 
 if __name__ == '__main__':
     p = ArgumentParser()
-    p.add_argument('data_directory', type=Path, nargs='+')
+    p.add_argument('data_directory', type=Path)
     p.add_argument("--enable-manhole", action="store_true")
     args = p.parse_args()
 
