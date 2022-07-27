@@ -1,10 +1,12 @@
-cwlVersion: v1.0
+cwlVersion: v1.1
 class: CommandLineTool
 label: segments each image in the directory for FTUs
 
-hints:
+requirements:
   DockerRequirement:
     dockerPull: hubmap/pas-ftu-segmentation
+  DockerGpuRequirement: {}
+
 baseCommand: /opt/inference.py
 
 inputs:
