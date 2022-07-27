@@ -1,9 +1,12 @@
+scikit-build
 albumentations
+ipywidgets
 numpy
+nvidia-ml-py
 pandas
 matplotlib
 munch
-opencv-python
+opencv-python-headless
 rasterio
 tiffile
 scikit-image

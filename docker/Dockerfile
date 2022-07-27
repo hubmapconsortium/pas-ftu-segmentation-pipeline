@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM nvidia/cuda:10.2-cudnn8-runtime-ubuntu18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -15,6 +15,7 @@ RUN apt-get update \
 
 ## Python packages
 COPY docker/requirements.txt /opt/requirements.txt
+RUN pip3 install --upgrade pip
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
