@@ -935,12 +935,11 @@ def main(data_directory: Path):
     for image_path in image_paths:
         path_stem = image_path.stem
         pred_mask, h, w = get_pred_mask(image_path, model_list, config)
-        rle = get_rle(pred_mask, h, w, config)
-        print(rle)
+#        rle = get_rle(pred_mask, h, w, config)
         plt.imsave(f'{path_stem}_mask.png', pred_mask)
         json_mask = mask2json(pred_mask)
-        with open(f'{path_stem}_mask.json') as f:
-            json.dump(f, json_mask)
+        with open(f'{path_stem}_mask.json', 'w') as f:
+            json.dump(json_mask, f)
 
 if __name__ == '__main__':
     p = ArgumentParser()
