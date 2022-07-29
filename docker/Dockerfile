@@ -15,19 +15,8 @@ RUN apt-get update \
 ## Python packages
 COPY docker/requirements.txt /opt/requirements.txt
 RUN pip3 install --upgrade pip
-RUN pip3 install astunparse numpy ninja pyyaml setuptools cmake cffi typing_extensions future six requests dataclasses
-
+RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 # install torch from source
-RUN git clone --recursive https://github.com/pytorch/pytorch
-WORKDIR pytorch
-ENV PYTORCH_BUILD_VERSION=1.8.2
-ENV PYTORCH_BUILD_NUMBER=1
-ENV USE_CUDA=1 USE_CUDNN=1
-ENV TORCH_CUDA_ARCH_LIST="3.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
-ENV MAX_JOBS=2
-RUN python setup.py clean \
-    && python setup.py install
 
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
