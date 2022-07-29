@@ -1,5 +1,4 @@
-FROM nvidia/cuda:10.2-cudnn8-runtime-ubuntu18.04
-
+FROM nvidia/cuda:11.6.0-cudnn8-runtime-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 ## System packages
@@ -16,7 +15,7 @@ RUN apt-get update \
 ## Python packages
 COPY docker/requirements.txt /opt/requirements.txt
 RUN pip3 install --upgrade pip
-RUN pip3 install -r /opt/requirements.txt \
+RUN pip3 install --no-binary torch -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
 RUN mkdir /root/.ssh
