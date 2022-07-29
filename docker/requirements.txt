@@ -11,6 +11,5 @@ rasterio
 tiffile
 scikit-image
 scipy
-torch
 torchvision
 tqdm
