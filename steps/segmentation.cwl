@@ -22,6 +22,13 @@ inputs:
     inputBinding:
       position: 1
 
+  tissue_type:
+    label: "Two letter code indicating organ sample is derived from"
+    type: str
+    inputBinding:
+      position: 2
+
+
 outputs:
   ome_tiff_files:
     type: File[]
