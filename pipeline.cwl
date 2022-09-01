@@ -22,7 +22,7 @@ inputs:
 outputs:
 
   ome_tiff_files:
-    outputSource: segmentation/tiff_files
+    outputSource: segmentation/ome_tiff_files
     type: File[]
   json_files:
     outputSource: segmentation/json_files
