@@ -24,7 +24,7 @@ inputs:
 
   tissue_type:
     label: "Two letter code indicating organ sample is derived from"
-    type: str
+    type: string
     inputBinding:
       position: 2
 
