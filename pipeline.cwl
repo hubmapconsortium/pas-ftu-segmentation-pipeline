@@ -14,11 +14,15 @@ inputs:
     label: "Path to directory containing raw PAS dataset"
     type: Directory
 
+  tissue_type:
+    label: "Code describing the organ from which the sample was derived"
+    type: string
+
 
 outputs:
 
-  png_files:
-    outputSource: segmentation/png_files
+  ome_tiff_files:
+    outputSource: segmentation/tiff_files
     type: File[]
   json_files:
     outputSource: segmentation/json_files
@@ -32,9 +36,11 @@ steps:
         source: data_directory
       - id: enable_manhole
         source: enable_manhole
+      - id: tissue_type
+        source: tissue_type
 
     out:
-      - png_files
+      - ome_tiff_files
       - json_files
 
     run: steps/segmentation.cwl

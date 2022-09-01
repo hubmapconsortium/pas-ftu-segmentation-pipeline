@@ -3,6 +3,9 @@ DEBUG = False
 
 import numpy as np
 import pandas as pd
+import aicsimageio
+from aicsimageio.readers.reader import Reader
+from aicsimageio.writers.ome_tiff_writer import OmeTiffWriter
 
 from albumentations import (Compose, HorizontalFlip, VerticalFlip, Rotate, RandomRotate90,
                             ShiftScaleRotate, ElasticTransform,
@@ -47,6 +50,8 @@ import pretrainedmodels
 
 MEAN = np.array([0.485, 0.456, 0.406])
 STD = np.array([0.229, 0.224, 0.225])
+
+supported_tissue_types = ['RK', 'LK']
 
 def find_files(directory: Path, pattern: str) -> Iterable[Path]:
     for dirpath_str, dirnames, filenames in os.walk(directory):
@@ -914,16 +919,20 @@ def mask2json(mask):
         }
     }
     geojson_list = []
-    for polygon in polygons:
+    for i, polygon in enumerate(polygons):
         geojson_dict = copy.deepcopy(geojson_dict_template)
+        geojson_dict["properties"]["classification"]["colorRBG"] = i
         geojson_dict["geometry"]["coordinates"].append(polygon)
         geojson_list.append(geojson_dict)
 
     return geojson_list
 
-def main(data_directory: Path):
+def main(data_directory: Path, tissue_type:str):
 
-    file_template = "*registered.ome.tiff"
+    if tissue_type not in supported_tissue_types:
+        raise ValueError(f"Type {tissue_type} not supported, only: {', '.join(supported_tissue_types)}")
+
+    file_template = "*.ome.tif*"
     image_paths = list(find_files(data_directory, file_template))
     print(f"Found files: {image_paths}")
 
@@ -935,8 +944,10 @@ def main(data_directory: Path):
     for image_path in image_paths:
         path_stem = image_path.stem
         pred_mask, h, w = get_pred_mask(image_path, model_list, config)
+        reader = Reader(image_path)
+        ome_metadata = reader.ome_metadata
 #        rle = get_rle(pred_mask, h, w, config)
-        plt.imsave(f'{path_stem}_mask.png', pred_mask)
+        OmeTiffWriter.save(pred_mask, f'{path_stem}_mask.ome.tif', ome_metadata)
         json_mask = mask2json(pred_mask)
         with open(f'{path_stem}_mask.json', 'w') as f:
             json.dump(json_mask, f)
@@ -944,6 +955,7 @@ def main(data_directory: Path):
 if __name__ == '__main__':
     p = ArgumentParser()
     p.add_argument('data_directory', type=Path)
+    p.add_argument('tissue_type', type=str)
     p.add_argument("--enable-manhole", action="store_true")
     args = p.parse_args()
 
@@ -952,4 +964,4 @@ if __name__ == '__main__':
 
         manhole.install(activate_on="USR1")
 
-    main(args.data_directory)
+    main(args.data_directory, args.tissue_type)

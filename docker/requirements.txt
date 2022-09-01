@@ -1,3 +1,4 @@
+aicsimageio
 scikit-build==0.15.0
 albumentations==1.2.1
 ipywidgets==7.7.1

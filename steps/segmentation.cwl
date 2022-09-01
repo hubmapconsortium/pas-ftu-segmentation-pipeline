@@ -23,14 +23,14 @@ inputs:
       position: 1
 
 outputs:
-  png_files:
+  ome_tiff_files:
     type: File[]
     outputBinding:
-      glob: "*.png"
-    doc: segmentation masks in png form
+      glob: "*.ome.tif"
+    doc: binary segmentation masks in ome tiff form
 
   json_files:
     type: File[]
     outputBinding:
       glob: "*.json"
-    doc: segmentation masks in geoJSON format
+    doc: indexed segmentation masks in geoJSON format
