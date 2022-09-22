@@ -3,8 +3,9 @@ DEBUG = False
 
 import numpy as np
 import pandas as pd
-import aicsimageio
-from aicsimageio.readers.reader import Reader
+from aicsimageio import AICSImage
+
+from aicsimageio.readers.ome_tiff_reader import OmeTiffReader
 from aicsimageio.writers.ome_tiff_writer import OmeTiffWriter
 
 from albumentations import (Compose, HorizontalFlip, VerticalFlip, Rotate, RandomRotate90,
@@ -871,12 +872,13 @@ def get_pred_mask(path, model_list, config):
                     _pred_mask_float = torch.sigmoid(model(img_patch.flip([-1,-2]).to(device, torch.float32, non_blocking=True))).detach().cpu().numpy()[:,0,:,:] #.squeeze()
                     pred_mask_float += _pred_mask_float[:,::-1,::-1]
         pred_mask_float = pred_mask_float / min(config['tta'],4) / len(model_list[seed]) # (bs,input_res,input_res)
-        
+
         # resize
         pred_mask_float = np.vstack([cv2.resize(_mask.astype(np.float32), (ds.sz,ds.sz))[None] for _mask in pred_mask_float])
-        
+
         # float to uint8
         pred_mask_int = (pred_mask_float>config['mask_threshold']).astype(np.uint8)
+
         # replace the values
         for j in range(bs):
             py0,py1,px0,px1 = data['p'][j]
@@ -944,10 +946,8 @@ def main(data_directory: Path, tissue_type:str):
     for image_path in image_paths:
         path_stem = image_path.stem
         pred_mask, h, w = get_pred_mask(image_path, model_list, config)
-        reader = Reader(image_path)
-        ome_metadata = reader.ome_metadata
 #        rle = get_rle(pred_mask, h, w, config)
-        OmeTiffWriter.save(pred_mask, f'{path_stem}_mask.ome.tif', ome_metadata)
+        OmeTiffWriter.save(pred_mask, f'{path_stem}_mask.ome.tif')
         json_mask = mask2json(pred_mask)
         with open(f'{path_stem}_mask.json', 'w') as f:
             json.dump(json_mask, f)
