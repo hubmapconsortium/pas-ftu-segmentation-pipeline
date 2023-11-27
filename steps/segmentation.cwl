@@ -4,10 +4,10 @@ label: segments each image in the directory for FTUs
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/pas-ftu-segmentation:1.0
+    dockerPull: hubmap/pas-ftu-segmentation
   DockerGpuRequirement: {}
 
-baseCommand: /opt/inference.py
+baseCommand: /opt/v1/inference.py
 
 inputs:
   enable_manhole:
