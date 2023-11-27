@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.6.0-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.6.1-cudnn8-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 ## System packages
@@ -13,7 +13,7 @@ RUN apt-get update \
  && rm -rf /var/cache/apt/*
 
 ## Python packages
-COPY docker/requirements.txt /opt/requirements.txt
+COPY docker/v1/requirements.txt /opt/requirements.txt
 RUN pip3 install --upgrade pip
 RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 

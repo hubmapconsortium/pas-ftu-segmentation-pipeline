@@ -7,7 +7,7 @@ requirements:
     dockerPull: hubmap/pas-ftu-segmentation
   DockerGpuRequirement: {}
 
-baseCommand: /opt/inference.py
+baseCommand: /opt/v1/inference.py
 
 inputs:
   enable_manhole:
