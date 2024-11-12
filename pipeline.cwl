@@ -27,7 +27,10 @@ outputs:
   json_files:
     outputSource: segmentation/json_files
     type: File[]
-
+  tsv_file:
+    outputSource: add_tsv/tsv_file
+    type: File
+    
 steps:
 
   - id: segmentation
@@ -45,3 +48,14 @@ steps:
 
     run: steps/segmentation.cwl
     label: "Performs FTU segmentation on PAS data"
+
+  - id: add_tsv
+    in:
+      - id: ome_tiff_files
+        source: segmentation/ome_tiff_files
+
+    out:
+      - tsv_file
+       
+    run: steps/convert-mask.cwl
+    label: "Converts ome_tiff masks to .tsv"
