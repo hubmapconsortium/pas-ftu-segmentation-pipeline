@@ -19,7 +19,7 @@ def main(ome_tiffs):
     obj_type = "UBERON:0000074"
     an_struct = "UBERON:0001229"
 
-    with open('output.tsv', 'w', newline='') as tsvfile:
+    with open('glomeruli-objects.tsv', 'w', newline='') as tsvfile:
         writer = csv.writer(tsvfile, delimiter='\t', lineterminator='\n')
         #write the hard-coded header rows
         writer.writerow(["Header Schema ID", "63c06fb2-4638-4979-aa97-5aff2a840156"])
@@ -43,14 +43,19 @@ def main(ome_tiffs):
 
     
         for ome_tiff in ome_tiffs:
+            
             with tifffile.TiffFile(ome_tiff) as tif:
                 image_data = tif.asarray()
+                ome_metadata = tif.ome_metadata
 
             #if multiple channels in input, use channel 2 (for testing with existing data)
             if image_data.ndim == 3:
                 image_data = image_data[2]
 
             image_data = skimage.measure.label(image_data)
+            image_data = np.array(image_data, dtype=np.uint16) #convert to a type we can actually write
+            path_stem = Path(ome_tiff).stem
+            tifffile.imwrite(f'{path_stem}.segmentations.ome.tiff', image_data)#, metadata=ome_metadata)
             clusters = skimage.measure.regionprops(image_data)
 
             file = os.path.basename(ome_tiff)

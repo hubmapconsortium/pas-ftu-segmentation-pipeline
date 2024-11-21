@@ -22,7 +22,7 @@ inputs:
 outputs:
 
   ome_tiff_files:
-    outputSource: segmentation/ome_tiff_files
+    outputSource: add_tsv/ome_tiff_files
     type: File[]
   json_files:
     outputSource: segmentation/json_files
@@ -55,6 +55,7 @@ steps:
         source: segmentation/ome_tiff_files
 
     out:
+      - ome_tiff_files
       - tsv_file
        
     run: steps/convert-mask.cwl

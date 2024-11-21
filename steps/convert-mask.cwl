@@ -21,3 +21,7 @@ outputs:
     outputBinding:
       glob: "*.tsv"
     doc: tsv file of mask
+  ome_tiff_files:
+    type: File[]
+    outputBinding:
+      glob: "*.ome.tiff"
