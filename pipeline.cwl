@@ -30,7 +30,7 @@ outputs:
   tsv_file:
     outputSource: add_tsv/tsv_file
     type: File
-    
+
 steps:
 
   - id: segmentation
@@ -57,6 +57,6 @@ steps:
     out:
       - ome_tiff_files
       - tsv_file
-       
+
     run: steps/convert-mask.cwl
     label: "Converts ome_tiff masks to .tsv"
