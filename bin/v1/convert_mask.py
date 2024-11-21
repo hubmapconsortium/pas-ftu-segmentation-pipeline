@@ -48,17 +48,13 @@ def main(ome_tiffs):
                 image_data = tif.asarray()
                 ome_metadata = tif.ome_metadata
 
-            #if multiple channels in input, use channel 2 (for testing with existing data)
-            if image_data.ndim == 3:
-                image_data = image_data[2]
-
             image_data = skimage.measure.label(image_data)
             image_data = np.array(image_data, dtype=np.uint16) #convert to a type we can actually write
             path_stem = Path(ome_tiff).stem
             tifffile.imwrite(f'{path_stem}.segmentations.ome.tiff', image_data)#, metadata=ome_metadata)
             clusters = skimage.measure.regionprops(image_data)
 
-            file = os.path.basename(ome_tiff)
+            filename = os.path.basename(ome_tiff)
 
             #get and write the data for each object
             for c in clusters:
@@ -67,7 +63,7 @@ def main(ome_tiffs):
                 maj_axis = c.major_axis_length/2
                 min_axis = c.minor_axis_length/2
                 radius = np.mean([maj_axis, min_axis])
-                writer.writerow([c.label, file, mask_name, mask_id, protocol, ann_tool, obj_type, centroid_x, centroid_y, '0', an_struct, area, radius])
+                writer.writerow([c.label, filename, mask_name, mask_id, protocol, ann_tool, obj_type, centroid_x, centroid_y, '0', an_struct, area, radius])
 
 
 if __name__ == '__main__':
