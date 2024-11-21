@@ -947,7 +947,7 @@ def main(data_directory: Path, tissue_type:str):
         path_stem = image_path.stem
         pred_mask, h, w = get_pred_mask(image_path, model_list, config)
 #        rle = get_rle(pred_mask, h, w, config)
-        OmeTiffWriter.save(pred_mask, f'{path_stem}.segmentations.ome.tif')
+        OmeTiffWriter.save(pred_mask, f'{path_stem}_mask.ome.tif')
         json_mask = mask2json(pred_mask)
         with open(f'{path_stem}_mask.json', 'w') as f:
             json.dump(json_mask, f)
