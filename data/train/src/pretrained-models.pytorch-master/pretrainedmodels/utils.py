@@ -1,10 +1,13 @@
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import, division, print_function
+
 import math
+
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from PIL import Image
 from munch import munchify
+from PIL import Image
+
 
 class ToSpaceBGR(object):
 
@@ -33,9 +36,15 @@ class ToRange255(object):
 
 class TransformImage(object):
 
-    def __init__(self, opts, scale=0.875, random_crop=False,
-                 random_hflip=False, random_vflip=False,
-                 preserve_aspect_ratio=True):
+    def __init__(
+        self,
+        opts,
+        scale=0.875,
+        random_crop=False,
+        random_hflip=False,
+        random_vflip=False,
+        preserve_aspect_ratio=True,
+    ):
         if type(opts) == dict:
             opts = munchify(opts)
         self.input_size = opts.input_size
@@ -52,7 +61,9 @@ class TransformImage(object):
 
         tfs = []
         if preserve_aspect_ratio:
-            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale))))
+            tfs.append(
+                transforms.Resize(int(math.floor(max(self.input_size) / self.scale)))
+            )
         else:
             height = int(self.input_size[1] / self.scale)
             width = int(self.input_size[2] / self.scale)
@@ -70,8 +81,8 @@ class TransformImage(object):
             tfs.append(transforms.RandomVerticalFlip())
 
         tfs.append(transforms.ToTensor())
-        tfs.append(ToSpaceBGR(self.input_space=='BGR'))
-        tfs.append(ToRange255(max(self.input_range)==255))
+        tfs.append(ToSpaceBGR(self.input_space == "BGR"))
+        tfs.append(ToRange255(max(self.input_range) == 255))
         tfs.append(transforms.Normalize(mean=self.mean, std=self.std))
 
         self.tf = transforms.Compose(tfs)
@@ -83,11 +94,11 @@ class TransformImage(object):
 
 class LoadImage(object):
 
-    def __init__(self, space='RGB'):
+    def __init__(self, space="RGB"):
         self.space = space
 
     def __call__(self, path_img):
-        with open(path_img, 'rb') as f:
+        with open(path_img, "rb") as f:
             with Image.open(f) as img:
                 img = img.convert(self.space)
         return img

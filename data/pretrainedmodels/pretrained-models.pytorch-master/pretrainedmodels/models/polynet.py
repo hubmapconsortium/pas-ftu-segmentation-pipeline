@@ -1,20 +1,21 @@
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import, division, print_function
+
 import torch
 import torch.nn as nn
 from torch.utils import model_zoo
 
-__all__ = ['PolyNet', 'polynet']
+__all__ = ["PolyNet", "polynet"]
 
 pretrained_settings = {
-    'polynet': {
-        'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/polynet-f71d82a5.pth',
-            'input_space': 'RGB',
-            'input_size': [3, 331, 331],
-            'input_range': [0, 1],
-            'mean': [0.485, 0.456, 0.406],
-            'std': [0.229, 0.224, 0.225],
-            'num_classes': 1000
+    "polynet": {
+        "imagenet": {
+            "url": "http://data.lip6.fr/cadene/pretrainedmodels/polynet-f71d82a5.pth",
+            "input_space": "RGB",
+            "input_size": [3, 331, 331],
+            "input_range": [0, 1],
+            "mean": [0.485, 0.456, 0.406],
+            "std": [0.229, 0.224, 0.225],
+            "num_classes": 1000,
         },
     }
 }
@@ -22,11 +23,18 @@ pretrained_settings = {
 
 class BasicConv2d(nn.Module):
 
-    def __init__(self, in_planes, out_planes, kernel_size, stride=1, padding=0,
-                 output_relu=True):
+    def __init__(
+        self, in_planes, out_planes, kernel_size, stride=1, padding=0, output_relu=True
+    ):
         super(BasicConv2d, self).__init__()
-        self.conv = nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size,
-                              stride=stride, padding=padding, bias=False)
+        self.conv = nn.Conv2d(
+            in_planes,
+            out_planes,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=False,
+        )
         self.bn = nn.BatchNorm2d(out_planes)
         self.relu = nn.ReLU() if output_relu else None
 
@@ -46,14 +54,21 @@ class PolyConv2d(nn.Module):
     Inception blocks inside a poly-N module.
     """
 
-    def __init__(self, in_planes, out_planes, kernel_size, num_blocks,
-                 stride=1, padding=0):
+    def __init__(
+        self, in_planes, out_planes, kernel_size, num_blocks, stride=1, padding=0
+    ):
         super(PolyConv2d, self).__init__()
-        self.conv = nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size,
-                              stride=stride, padding=padding, bias=False)
-        self.bn_blocks = nn.ModuleList([
-            nn.BatchNorm2d(out_planes) for _ in range(num_blocks)
-        ])
+        self.conv = nn.Conv2d(
+            in_planes,
+            out_planes,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=False,
+        )
+        self.bn_blocks = nn.ModuleList(
+            [nn.BatchNorm2d(out_planes) for _ in range(num_blocks)]
+        )
         self.relu = nn.ReLU()
 
     def forward(self, x, block_index):
@@ -200,6 +215,7 @@ class ReductionB(nn.Module):
     """A dimensionality reduction block that is placed after stage-b
     Inception-ResNet blocks.
     """
+
     def __init__(self):
         super(ReductionB, self).__init__()
         self.path0 = nn.Sequential(
@@ -238,22 +254,26 @@ class InceptionResNetBPoly(nn.Module):
 
     def __init__(self, scale, num_blocks):
         super(InceptionResNetBPoly, self).__init__()
-        assert num_blocks >= 1, 'num_blocks should be greater or equal to 1'
+        assert num_blocks >= 1, "num_blocks should be greater or equal to 1"
         self.scale = scale
         self.num_blocks = num_blocks
-        self.path0_1x1 = PolyConv2d(1152, 128, kernel_size=1,
-                                    num_blocks=self.num_blocks)
-        self.path0_1x7 = PolyConv2d(128, 160, kernel_size=(1, 7),
-                                    num_blocks=self.num_blocks, padding=(0, 3))
-        self.path0_7x1 = PolyConv2d(160, 192, kernel_size=(7, 1),
-                                    num_blocks=self.num_blocks, padding=(3, 0))
-        self.path1 = PolyConv2d(1152, 192, kernel_size=1,
-                                num_blocks=self.num_blocks)
+        self.path0_1x1 = PolyConv2d(
+            1152, 128, kernel_size=1, num_blocks=self.num_blocks
+        )
+        self.path0_1x7 = PolyConv2d(
+            128, 160, kernel_size=(1, 7), num_blocks=self.num_blocks, padding=(0, 3)
+        )
+        self.path0_7x1 = PolyConv2d(
+            160, 192, kernel_size=(7, 1), num_blocks=self.num_blocks, padding=(3, 0)
+        )
+        self.path1 = PolyConv2d(1152, 192, kernel_size=1, num_blocks=self.num_blocks)
         # conv2d blocks are not shared between Inception-ResNet-B blocks
-        self.conv2d_blocks = nn.ModuleList([
-            BasicConv2d(384, 1152, kernel_size=1, output_relu=False)
-            for _ in range(self.num_blocks)
-        ])
+        self.conv2d_blocks = nn.ModuleList(
+            [
+                BasicConv2d(384, 1152, kernel_size=1, output_relu=False)
+                for _ in range(self.num_blocks)
+            ]
+        )
         self.relu = nn.ReLU()
 
     def forward_block(self, x, block_index):
@@ -288,22 +308,26 @@ class InceptionResNetCPoly(nn.Module):
 
     def __init__(self, scale, num_blocks):
         super(InceptionResNetCPoly, self).__init__()
-        assert num_blocks >= 1, 'num_blocks should be greater or equal to 1'
+        assert num_blocks >= 1, "num_blocks should be greater or equal to 1"
         self.scale = scale
         self.num_blocks = num_blocks
-        self.path0_1x1 = PolyConv2d(2048, 192, kernel_size=1,
-                                    num_blocks=self.num_blocks)
-        self.path0_1x3 = PolyConv2d(192, 224, kernel_size=(1, 3),
-                                    num_blocks=self.num_blocks, padding=(0, 1))
-        self.path0_3x1 = PolyConv2d(224, 256, kernel_size=(3, 1),
-                                    num_blocks=self.num_blocks, padding=(1, 0))
-        self.path1 = PolyConv2d(2048, 192, kernel_size=1,
-                                num_blocks=self.num_blocks)
+        self.path0_1x1 = PolyConv2d(
+            2048, 192, kernel_size=1, num_blocks=self.num_blocks
+        )
+        self.path0_1x3 = PolyConv2d(
+            192, 224, kernel_size=(1, 3), num_blocks=self.num_blocks, padding=(0, 1)
+        )
+        self.path0_3x1 = PolyConv2d(
+            224, 256, kernel_size=(3, 1), num_blocks=self.num_blocks, padding=(1, 0)
+        )
+        self.path1 = PolyConv2d(2048, 192, kernel_size=1, num_blocks=self.num_blocks)
         # conv2d blocks are not shared between Inception-ResNet-C blocks
-        self.conv2d_blocks = nn.ModuleList([
-            BasicConv2d(448, 2048, kernel_size=1, output_relu=False)
-            for _ in range(self.num_blocks)
-        ])
+        self.conv2d_blocks = nn.ModuleList(
+            [
+                BasicConv2d(448, 2048, kernel_size=1, output_relu=False)
+                for _ in range(self.num_blocks)
+            ]
+        )
         self.relu = nn.ReLU()
 
     def forward_block(self, x, block_index):
@@ -331,7 +355,7 @@ class MultiWay(nn.Module):
 
     def __init__(self, scale, block_cls, num_blocks):
         super(MultiWay, self).__init__()
-        assert num_blocks >= 1, 'num_blocks should be greater or equal to 1'
+        assert num_blocks >= 1, "num_blocks should be greater or equal to 1"
         self.scale = scale
         self.blocks = nn.ModuleList([block_cls() for _ in range(num_blocks)])
         self.relu = nn.ReLU()
@@ -346,25 +370,29 @@ class MultiWay(nn.Module):
 
 # Some helper classes to simplify the construction of PolyNet
 
+
 class InceptionResNetA2Way(MultiWay):
 
     def __init__(self, scale):
-        super(InceptionResNetA2Way, self).__init__(scale, block_cls=BlockA,
-                                                   num_blocks=2)
+        super(InceptionResNetA2Way, self).__init__(
+            scale, block_cls=BlockA, num_blocks=2
+        )
 
 
 class InceptionResNetB2Way(MultiWay):
 
     def __init__(self, scale):
-        super(InceptionResNetB2Way, self).__init__(scale, block_cls=BlockB,
-                                                   num_blocks=2)
+        super(InceptionResNetB2Way, self).__init__(
+            scale, block_cls=BlockB, num_blocks=2
+        )
 
 
 class InceptionResNetC2Way(MultiWay):
 
     def __init__(self, scale):
-        super(InceptionResNetC2Way, self).__init__(scale, block_cls=BlockC,
-                                                   num_blocks=2)
+        super(InceptionResNetC2Way, self).__init__(
+            scale, block_cls=BlockC, num_blocks=2
+        )
 
 
 class InceptionResNetBPoly3(InceptionResNetBPoly):
@@ -458,23 +486,25 @@ class PolyNet(nn.Module):
         return x
 
 
-def polynet(num_classes=1000, pretrained='imagenet'):
+def polynet(num_classes=1000, pretrained="imagenet"):
     """PolyNet architecture from the paper
     'PolyNet: A Pursuit of Structural Diversity in Very Deep Networks'
     https://arxiv.org/abs/1611.05725
     """
     if pretrained:
-        settings = pretrained_settings['polynet'][pretrained]
-        assert num_classes == settings['num_classes'], \
-            'num_classes should be {}, but is {}'.format(
-                settings['num_classes'], num_classes)
+        settings = pretrained_settings["polynet"][pretrained]
+        assert (
+            num_classes == settings["num_classes"]
+        ), "num_classes should be {}, but is {}".format(
+            settings["num_classes"], num_classes
+        )
         model = PolyNet(num_classes=num_classes)
-        model.load_state_dict(model_zoo.load_url(settings['url']))
-        model.input_space = settings['input_space']
-        model.input_size = settings['input_size']
-        model.input_range = settings['input_range']
-        model.mean = settings['mean']
-        model.std = settings['std']
+        model.load_state_dict(model_zoo.load_url(settings["url"]))
+        model.input_space = settings["input_space"]
+        model.input_size = settings["input_size"]
+        model.input_range = settings["input_range"]
+        model.mean = settings["mean"]
+        model.std = settings["std"]
     else:
         model = PolyNet(num_classes=num_classes)
     return model

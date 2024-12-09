@@ -1,21 +1,24 @@
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import, division, print_function
+
 import math
-from six.moves.urllib.request import urlretrieve
 
 import torch
 from PIL import Image
+from six.moves.urllib.request import urlretrieve
 from tqdm import tqdm
 
-def load_imagenet_classes(path_synsets='data/imagenet_synsets.txt',
-                          path_classes='data/imagenet_classes.txt'):
-    with open(path_synsets, 'r') as f:
+
+def load_imagenet_classes(
+    path_synsets="data/imagenet_synsets.txt", path_classes="data/imagenet_classes.txt"
+):
+    with open(path_synsets, "r") as f:
         synsets = f.readlines()
 
     synsets = [x.strip() for x in synsets]
-    splits = [line.split(' ') for line in synsets]
-    key_to_classname = {spl[0]:' '.join(spl[1:]) for spl in splits}
+    splits = [line.split(" ") for line in synsets]
+    key_to_classname = {spl[0]: " ".join(spl[1:]) for spl in splits}
 
-    with open(path_classes, 'r') as f:
+    with open(path_classes, "r") as f:
         class_id_to_key = f.readlines()
 
     class_id_to_key = [x.strip() for x in class_id_to_key]
@@ -38,8 +41,12 @@ class Warp(object):
         return img.resize((self.size, self.size), self.interpolation)
 
     def __str__(self):
-        return self.__class__.__name__ + ' (size={size}, interpolation={interpolation})'.format(size=self.size,
-                                                                                                interpolation=self.interpolation)
+        return (
+            self.__class__.__name__
+            + " (size={size}, interpolation={interpolation})".format(
+                size=self.size, interpolation=self.interpolation
+            )
+        )
 
 
 def download_url(url, destination=None, progress_bar=True):
@@ -77,7 +84,7 @@ def download_url(url, destination=None, progress_bar=True):
         return inner
 
     if progress_bar:
-        with tqdm(unit='B', unit_scale=True, miniters=1, desc=url.split('/')[-1]) as t:
+        with tqdm(unit="B", unit_scale=True, miniters=1, desc=url.split("/")[-1]) as t:
             filename, _ = urlretrieve(url, filename=destination, reporthook=my_hook(t))
     else:
         filename, _ = urlretrieve(url, filename=destination)
@@ -129,18 +136,21 @@ class AveragePrecisionMeter(object):
         if output.dim() == 1:
             output = output.view(-1, 1)
         else:
-            assert output.dim() == 2, \
-                'wrong output size (should be 1D or 2D with one column \
-                per class)'
+            assert (
+                output.dim() == 2
+            ), "wrong output size (should be 1D or 2D with one column \
+                per class)"
         if target.dim() == 1:
             target = target.view(-1, 1)
         else:
-            assert target.dim() == 2, \
-                'wrong target size (should be 1D or 2D with one column \
-                per class)'
+            assert (
+                target.dim() == 2
+            ), "wrong target size (should be 1D or 2D with one column \
+                per class)"
         if self.scores.numel() > 0:
-            assert target.size(1) == self.targets.size(1), \
-                'dimensions for output should match previously added examples.'
+            assert target.size(1) == self.targets.size(
+                1
+            ), "dimensions for output should match previously added examples."
 
         # make sure storage is of sufficient size
         if self.scores.storage().size() < self.scores.numel() + output.numel():
@@ -173,7 +183,9 @@ class AveragePrecisionMeter(object):
             targets = self.targets[:, k]
 
             # compute average precision
-            ap[k] = AveragePrecisionMeter.average_precision(scores, targets, self.difficult_examples)
+            ap[k] = AveragePrecisionMeter.average_precision(
+                scores, targets, self.difficult_examples
+            )
         return ap
 
     @staticmethod
@@ -183,9 +195,9 @@ class AveragePrecisionMeter(object):
         sorted, indices = torch.sort(output, dim=0, descending=True)
 
         # Computes prec@i
-        pos_count = 0.
-        total_count = 0.
-        precision_at_i = 0.
+        pos_count = 0.0
+        total_count = 0.0
+        precision_at_i = 0.0
         for i in indices:
             label = target[i]
             if difficult_examples and label == 0:
