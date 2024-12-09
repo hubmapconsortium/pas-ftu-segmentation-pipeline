@@ -1,38 +1,45 @@
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import, division, print_function
+
 import os
+
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
-from .resnext_features import resnext101_32x4d_features
-from .resnext_features import resnext101_64x4d_features
 
-__all__ = ['ResNeXt101_32x4d', 'resnext101_32x4d',
-           'ResNeXt101_64x4d', 'resnext101_64x4d']
+from .resnext_features import resnext101_32x4d_features, resnext101_64x4d_features
+
+__all__ = [
+    "ResNeXt101_32x4d",
+    "resnext101_32x4d",
+    "ResNeXt101_64x4d",
+    "resnext101_64x4d",
+]
 
 pretrained_settings = {
-    'resnext101_32x4d': {
-        'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/resnext101_32x4d-29e315fa.pth',
-            'input_space': 'RGB',
-            'input_size': [3, 224, 224],
-            'input_range': [0, 1],
-            'mean': [0.485, 0.456, 0.406],
-            'std': [0.229, 0.224, 0.225],
-            'num_classes': 1000
+    "resnext101_32x4d": {
+        "imagenet": {
+            "url": "http://data.lip6.fr/cadene/pretrainedmodels/resnext101_32x4d-29e315fa.pth",
+            "input_space": "RGB",
+            "input_size": [3, 224, 224],
+            "input_range": [0, 1],
+            "mean": [0.485, 0.456, 0.406],
+            "std": [0.229, 0.224, 0.225],
+            "num_classes": 1000,
         }
     },
-    'resnext101_64x4d': {
-        'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/resnext101_64x4d-e77a0586.pth',
-            'input_space': 'RGB',
-            'input_size': [3, 224, 224],
-            'input_range': [0, 1],
-            'mean': [0.485, 0.456, 0.406],
-            'std': [0.229, 0.224, 0.225],
-            'num_classes': 1000
+    "resnext101_64x4d": {
+        "imagenet": {
+            "url": "http://data.lip6.fr/cadene/pretrainedmodels/resnext101_64x4d-e77a0586.pth",
+            "input_space": "RGB",
+            "input_size": [3, 224, 224],
+            "input_range": [0, 1],
+            "mean": [0.485, 0.456, 0.406],
+            "std": [0.229, 0.224, 0.225],
+            "num_classes": 1000,
         }
-    }
+    },
 }
+
 
 class ResNeXt101_32x4d(nn.Module):
 
@@ -76,30 +83,37 @@ class ResNeXt101_64x4d(nn.Module):
         return x
 
 
-def resnext101_32x4d(num_classes=1000, pretrained='imagenet'):
+def resnext101_32x4d(num_classes=1000, pretrained="imagenet"):
     model = ResNeXt101_32x4d(num_classes=num_classes)
     if pretrained is not None:
-        settings = pretrained_settings['resnext101_32x4d'][pretrained]
-        assert num_classes == settings['num_classes'], \
-            "num_classes should be {}, but is {}".format(settings['num_classes'], num_classes)
-        model.load_state_dict(model_zoo.load_url(settings['url']))
-        model.input_space = settings['input_space']
-        model.input_size = settings['input_size']
-        model.input_range = settings['input_range']
-        model.mean = settings['mean']
-        model.std = settings['std']
+        settings = pretrained_settings["resnext101_32x4d"][pretrained]
+        assert (
+            num_classes == settings["num_classes"]
+        ), "num_classes should be {}, but is {}".format(
+            settings["num_classes"], num_classes
+        )
+        model.load_state_dict(model_zoo.load_url(settings["url"]))
+        model.input_space = settings["input_space"]
+        model.input_size = settings["input_size"]
+        model.input_range = settings["input_range"]
+        model.mean = settings["mean"]
+        model.std = settings["std"]
     return model
 
-def resnext101_64x4d(num_classes=1000, pretrained='imagenet'):
+
+def resnext101_64x4d(num_classes=1000, pretrained="imagenet"):
     model = ResNeXt101_64x4d(num_classes=num_classes)
     if pretrained is not None:
-        settings = pretrained_settings['resnext101_64x4d'][pretrained]
-        assert num_classes == settings['num_classes'], \
-            "num_classes should be {}, but is {}".format(settings['num_classes'], num_classes)
-        model.load_state_dict(model_zoo.load_url(settings['url']))
-        model.input_space = settings['input_space']
-        model.input_size = settings['input_size']
-        model.input_range = settings['input_range']
-        model.mean = settings['mean']
-        model.std = settings['std']
+        settings = pretrained_settings["resnext101_64x4d"][pretrained]
+        assert (
+            num_classes == settings["num_classes"]
+        ), "num_classes should be {}, but is {}".format(
+            settings["num_classes"], num_classes
+        )
+        model.load_state_dict(model_zoo.load_url(settings["url"]))
+        model.input_space = settings["input_space"]
+        model.input_size = settings["input_size"]
+        model.input_range = settings["input_range"]
+        model.mean = settings["mean"]
+        model.std = settings["std"]
     return model
