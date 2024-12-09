@@ -4,7 +4,7 @@ label: converts ometif files to tsv mask
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/pas-ftu-segmentation
+    dockerPull: hubmap/pas-ftu-segmentation:1.2.1
   DockerGpuRequirement: {}
 
 baseCommand: /opt/v1/convert_mask.py
