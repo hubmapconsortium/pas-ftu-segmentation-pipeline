@@ -4,7 +4,7 @@ label: segments each image in the directory for FTUs
 
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/pas-ftu-segmentation
+    dockerPull: hubmap/pas-ftu-segmentation:1.2.2
   DockerGpuRequirement: {}
   EnvVarRequirement:
     envDef:
