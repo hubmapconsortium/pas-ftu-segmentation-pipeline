@@ -18,6 +18,11 @@ inputs:
     label: "Code describing the organ from which the sample was derived"
     type: string
 
+  gpus:
+    label: "GPU ID to use as CUDA_VISIBLE_DEVICES for granular control"
+    type: int
+    default: 0
+
 
 outputs:
 

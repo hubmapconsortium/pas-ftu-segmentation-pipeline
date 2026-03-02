@@ -6,6 +6,9 @@ requirements:
   DockerRequirement:
     dockerPull: hubmap/pas-ftu-segmentation
   DockerGpuRequirement: {}
+  EnvVarRequirement:
+    envDef:
+        CUDA_VISIBLE_DEVICES: $(inputs.gpus)
 
 baseCommand: /opt/v1/inference.py
 
@@ -27,6 +30,10 @@ inputs:
     type: string
     inputBinding:
       position: 2
+
+  gpus:
+    label: "GPU ID to use as CUDA_VISIBLE_DEVICES for granular control"
+    type: int
 
 
 outputs:
