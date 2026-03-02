@@ -18,6 +18,11 @@ inputs:
     label: "Code describing the organ from which the sample was derived"
     type: string
 
+  gpus:
+    label: "GPU ID to use as CUDA_VISIBLE_DEVICES for granular control"
+    type: int
+    default: 0
+
 
 outputs:
 
@@ -30,7 +35,7 @@ outputs:
   tsv_file:
     outputSource: add_tsv/tsv_file
     type: File
-
+    
 steps:
 
   - id: segmentation
@@ -57,6 +62,6 @@ steps:
     out:
       - ome_tiff_files
       - tsv_file
-
+       
     run: steps/convert-mask.cwl
     label: "Converts ome_tiff masks to .tsv"
