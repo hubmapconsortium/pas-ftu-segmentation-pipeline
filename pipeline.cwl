@@ -35,7 +35,7 @@ outputs:
   tsv_file:
     outputSource: add_tsv/tsv_file
     type: File
-
+    
 steps:
 
   - id: segmentation
@@ -46,6 +46,8 @@ steps:
         source: enable_manhole
       - id: tissue_type
         source: tissue_type
+      - id: gpus
+        source: gpus
 
     out:
       - ome_tiff_files
@@ -62,6 +64,6 @@ steps:
     out:
       - ome_tiff_files
       - tsv_file
-
+       
     run: steps/convert-mask.cwl
     label: "Converts ome_tiff masks to .tsv"
