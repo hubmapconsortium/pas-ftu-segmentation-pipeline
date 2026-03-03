@@ -46,6 +46,8 @@ steps:
         source: enable_manhole
       - id: tissue_type
         source: tissue_type
+      - id: gpus
+        source: gpus
 
     out:
       - ome_tiff_files
